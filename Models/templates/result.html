@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processed Results</title>
+    <script>
+        function sendDataToAPI() {
+            let inputText = "{{ filename }}"; // Make sure this is set correctly in the template
+        
+            if (!inputText) {
+                alert("No text found to send!");
+                return;
+            }
+        
+            fetch("http://localhost:5000/extract-sensitive-data", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ text: inputText }) // Send input text
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} - ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Response from API:", data);
+                if (data.error) {
+                    alert("API Error: " + data.error);
+                } else {
+                    alert("Data saved to Firebase!");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Failed to save data. Check console for details.");
+            });
+        }
+        
+    </script>
+</head>
+<body>
+    <h2>Processed Document: {{ filename }}</h2>
+
+    <h3>Extracted Entities:</h3>
+    <table border="1">
+        <tr>
+            <th>Token</th>
+            <th>Entity</th>
+            <th>Safe Token</th>
+            <th>Confidence Score</th>
+        </tr>
+        {% for token, details in sensitive_data.items() %}
+        <tr>
+            <td>{{ token }}</td>
+            <td>{{ details.entity }}</td>
+            <td>{{ details.safe_token }}</td>
+            <td>{{ details.confidence_score }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+    <a href="{{ url_for('download_file', filename=filename) }}">
+        <button>Download Processed Document</button>
+    </a>
+
+    <button onclick="sendDataToAPI()">Save to Firebase</button> <!-- Button to call API -->
+</body>
+</html>

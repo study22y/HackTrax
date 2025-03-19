@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Processor</title>
+</head>
+<body>
+    <h1>Upload a PDF or Image for Processing</h1>
+    <form id="file-form" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Process File</button>
+    </form>
+
+    <script>
+        // Listen for the form submission
+        document.getElementById('file-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            let formData = new FormData(this); // FormData to collect form inputs
+
+            fetch('/process', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data); // Handle response (processed file info or error message)
+                alert("File processed successfully!");
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An error occurred while processing the file.");
+            });
+        });
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@ from PIL import Image
 from transformers import pipeline
 import os
 from werkzeug.utils import secure_filename
-import fitz  # PyMuPDF
+import fitz 
 import spacy
 import cv2
 import numpy as np
@@ -19,9 +19,8 @@ from flask_cors import CORS
 from firebase_admin import credentials, firestore
 
 app = Flask(__name__)
-CORS(app)  # This will enable CORS for all routes and origins
+CORS(app)  
 
-# Define the upload and output directories
 UPLOAD_FOLDER = 'static/uploads'
 OUTPUT_FOLDER = 'outputs'
 PROCESSED_FOLDER = 'static/processed'  # Corrected this line
@@ -32,13 +31,11 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 app.config["PROCESSED_FOLDER"] = PROCESSED_FOLDER  # Corrected this line
 
-# Ensure the folders exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 os.makedirs(PROCESSED_FOLDER, exist_ok=True)  # N
 
 
-# ✅ Load spaCy model
 
 try:
     nlp = spacy.load("en_core_web_lg")
@@ -47,7 +44,6 @@ except OSError:
     os.system("spacy download en_core_web_lg")
     nlp = spacy.load("en_core_web_lg")
 
-# ✅ Load Transformers NER model
 transformers_model = pipeline(
     "token-classification",
     model="dbmdz/bert-large-cased-finetuned-conll03-english",
@@ -80,15 +76,12 @@ class TransformersRecognizer(EntityRecognizer):
                 results.append(RecognizerResult(entity_type=converted_entity, start=e["start"], end=e["end"], score=e["score"]))
         return results
 
-# ✅ Initialize Presidio
 analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
 
-# ✅ Register the Transformers-based recognizer
 transformers_recognizer = TransformersRecognizer(transformers_model)
 analyzer.registry.add_recognizer(transformers_recognizer)
 
-# ✅ Color Mapping for Redaction
 COLOR_MASK = "BLACK"
 color_map = {
     "BLACK": (0, 0, 0),
@@ -127,9 +120,9 @@ def indian_specific_regex(text):
     """Returns additional sensitive data based on Indian-specific regex patterns"""
     
     regex_patterns = {
-        "IN_PAN": r"\b[A-Z]{5}\d{4}[A-Z]{1}\b",  # PAN Card (e.g., ABCDE1234F)
-        "IN_AADHAAR": r"\b\d{4} \d{4} \d{4}\b",  # Aadhaar Number (e.g., 1234 5678 9012)
-        "IN_PHONE": r"\b(?:\+91|91)?\d{10}\b",  # Phone number with optional +91 or 91 (e.g., +919876543210 or 919876543210)
+        "IN_PAN": r"\b[A-Z]{5}\d{4}[A-Z]{1}\b",  
+        "IN_AADHAAR": r"\b\d{4} \d{4} \d{4}\b", 
+        "IN_PHONE": r"\b(?:\+91|91)?\d{10}\b",  
         "IN_PHONE_WITHOUT_CODE":r"\b[6789]\d{9}\b",
         # "IN_BANK_ACCOUNT": r"\b\d{9,18}\b"
     }
@@ -141,20 +134,18 @@ def indian_specific_regex(text):
         
         for match in matches:
             entity_text = match.group(0)
-            # Generate a secure token for the matched entity
+            0
             safe_token = generate_secure_token()
             sensitive_data[entity_text] = {
                 "entity": entity_name,
                 "safe_token": safe_token,
-                "confidence_score": 1  # Set confidence score to 1 for regex matches
+                "confidence_score": 1 
             }
     
     return sensitive_data
-# Initialize Firebase Admin SDK
 cred = credentials.Certificate('serviceAccountKey.json')
 firebase_admin.initialize_app(cred)
 
-# Get Firestore client
 db = firestore.client()
 
 def get_sensitive_data(text):
@@ -434,7 +425,6 @@ def process_file(filename):
     if not os.path.exists(file_path):
         return f"File {filename} not found in upload directory", 404
 
-    # Process the file based on its type
     if filename.lower().endswith(".pdf"):
         output_filename = "processed_" + filename  # Example: "processed_filename.pdf"
         output_path = os.path.join(app.config["PROCESSED_FOLDER"], output_filename)

@@ -17,6 +17,8 @@ from typing import List
 import firebase_admin
 from flask_cors import CORS
 from firebase_admin import credentials, firestore
+from safetensors.torch import load_file
+import torch
 
 app = Flask(__name__)
 CORS(app)  
@@ -51,7 +53,9 @@ transformers_model = pipeline(
     ignore_labels=["O", "MISC"]
 )
 
-# ✅ Custom Entity Recognizer
+# Load the model weights
+model_path = r"D:\CodeFest(tokenization)\Standard-Chartered-Hackthon\Models\model.safetensors"
+# state_dict = load_file(model_path)
 class TransformersRecognizer(EntityRecognizer):
     def __init__(self, model_pipeline, supported_language="en"):
         self.pipeline = model_pipeline
